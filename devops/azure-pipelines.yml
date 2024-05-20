@@ -29,4 +29,4 @@ stages:
     AWS_ACCESS_KEY_ID: '${{ parameters.AWS_ACCESS_KEY_ID }}'
     AWS_SECRET_ACCESS_KEY: '${{ parameters.AWS_SECRET_ACCESS_KEY }}'
     REGION_ACCOUNT: '${{ parameters.REGION_ACCOUNT }}'
-    CLUSTER_NAME: '${{ parameters.CLUSTER_NAME }}'
+    # CLUSTER_NAME: '${{ parameters.CLUSTER_NAME }}'

@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: your-s3-bucket-name
+
+  WebACL:
+    Type: 'AWS::WAFv2::WebACL'
+    Properties:
+      Name: 'your-waf-name'
+      Scope: 'CLOUDFRONT'
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: 'your-waf-metric'
+
+  CloudFrontDistribution:
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: your-s3-bucket-name.s3.amazonaws.com
+            Id: S3Origin
+            S3OriginConfig: {}
+        Enabled: true
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: 'redirect-to-https'
+          AllowedMethods: ['GET', 'HEAD']
+        WebACLId: !Ref WebACL
+
+  EKSCluster:
+    Type: 'AWS::EKS::Cluster'
+    Properties:
+      Name: your-eks-cluster-name
+      ResourcesVpcConfig:
+        SubnetIds:
+          - subnet-12345678
+          - subnet-87654321
+        SecurityGroupIds:
+          - sg-12345678

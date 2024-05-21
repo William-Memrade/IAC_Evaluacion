@@ -13,8 +13,7 @@ trigger:
 - master
 - release
 
-pool:
-  vmImage: 'ubuntu-latest'
+pool: 'pool-linux'
 
 resources:
   repositories:

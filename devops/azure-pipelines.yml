@@ -1,9 +1,9 @@
 # azure-pipelines.yml
 parameters:
 - name: AWS_ACCESS_KEY_ID
-  default: 'AWS_ACCESS_KEY_ID'
+  default: ''
 - name: AWS_SECRET_ACCESS_KEY
-  default: 'AWS_SECRET_ACCESS_KEY'
+  default: ''
 - name: REGION_ACCOUNT
   default: 'us-east-1'
 - name: CLUSTER_NAME
@@ -19,7 +19,7 @@ resources:
   repositories:
     - repository: templates
       type: git
-      name: cloud-devops-evaluacion
+      name: cloud_devops_evaluacion
       ref: 'master'
 
 stages:
@@ -28,4 +28,4 @@ stages:
     AWS_ACCESS_KEY_ID: '${{ parameters.AWS_ACCESS_KEY_ID }}'
     AWS_SECRET_ACCESS_KEY: '${{ parameters.AWS_SECRET_ACCESS_KEY }}'
     REGION_ACCOUNT: '${{ parameters.REGION_ACCOUNT }}'
-    # CLUSTER_NAME: '${{ parameters.CLUSTER_NAME }}'
+    CLUSTER_NAME: '${{ parameters.CLUSTER_NAME }}'

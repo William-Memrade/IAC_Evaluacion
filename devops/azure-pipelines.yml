@@ -1,19 +1,9 @@
 # azure-pipelines.yml
-parameters:
-- name: AWS_ACCESS_KEY_ID
-  default: ''
-- name: AWS_SECRET_ACCESS_KEY
-  default: ''
-- name: REGION_ACCOUNT
-  default: 'us-east-1'
-- name: CLUSTER_NAME
-  default: 'CLUSTER_NAME'
-
 trigger:
 - master
 - release
 
-pool: 'pool-linux'
+pool: 'pool-linux-b'
 
 resources:
   repositories:
@@ -24,8 +14,3 @@ resources:
 
 stages:
 - template: templates/deployTemplate.yml@templates
-  parameters:
-    AWS_ACCESS_KEY_ID: '${{ parameters.AWS_ACCESS_KEY_ID }}'
-    AWS_SECRET_ACCESS_KEY: '${{ parameters.AWS_SECRET_ACCESS_KEY }}'
-    REGION_ACCOUNT: '${{ parameters.REGION_ACCOUNT }}'
-    CLUSTER_NAME: '${{ parameters.CLUSTER_NAME }}'

@@ -1,44 +1,125 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  StackName:
+    Type: String
+    Description: "Nombre del stack"
+  RoleArn:
+    Type: String
+    Description: "ARN de la IAM Role para EKS Cluster"
+  HostedZoneId:
+    Type: String
+    Description: "ID de la zona hospedada de Route 53"
+  SubnetIds:
+    Type: String
+    Description: "IDs de las subnets para EKS Cluster"
+  SecurityGroupIds:
+    Type: String
+    Description: "ID del security group para EKS Cluster"
+
 Resources:
   S3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: your-s3-bucket-name
+      BucketName: !Sub '${StackName}-s3bucket'
+  
+  # WAFIPSet:
+  #   Type: "AWS::WAFv2::IPSet"
+  #   Properties:
+  #     Name: !Sub "${StackName}-ipset"
+  #     Scope: CLOUDFRONT
+  #     IPAddressVersion: IPV4
+  #     Addresses:
+  #       - 198.51.100.0/24  # Ejemplo de rango IP
+
+  # WAFRule:
+  #   Type: "AWS::WAFv2::RuleGroup"
+  #   Properties:
+  #     Name: !Sub "${StackName}-rulegroup"
+  #     Scope: CLOUDFRONT
+  #     VisibilityConfig:
+  #       SampledRequestsEnabled: true
+  #       CloudWatchMetricsEnabled: true
+  #       MetricName: !Sub "${StackName}-metric"
+      # Rules:
+      #   - Name: BlockSpecificIP
+      #     Priority: 0
+      #     Action:
+      #       Block: {}
+      #     Statement:
+      #       IPSetReferenceStatement:
+      #         ARN: !Ref WAFIPSet
+      #     VisibilityConfig:
+      #       SampledRequestsEnabled: true
+      #       CloudWatchMetricsEnabled: true
+      #       MetricName: !Sub "${StackName}-metric"
 
   WebACL:
     Type: 'AWS::WAFv2::WebACL'
     Properties:
-      Name: 'your-waf-name'
-      Scope: 'CLOUDFRONT'
+      Name: !Sub '${StackName}-webacl'
+      # Scope: 'CLOUDFRONT'
+      Scope: 'REGIONAL'
       DefaultAction:
         Allow: {}
       VisibilityConfig:
         SampledRequestsEnabled: true
         CloudWatchMetricsEnabled: true
-        MetricName: 'your-waf-metric'
+        MetricName: !Sub '${StackName}-metric'
+      Rules: []
+      # Rules:
+      #   - Name: BlockSpecificIP
+      #     Priority: 0
+      #     Action:
+      #       Block: {}
+      #     Statement:
+      #       IPSetReferenceStatement:
+      #         ARN: !Ref WAFIPSet
+      #     VisibilityConfig:
+      #       SampledRequestsEnabled: true
+      #       CloudWatchMetricsEnabled: true
+      #       MetricName: !Sub '${StackName}-metric'
 
-  CloudFrontDistribution:
-    Type: 'AWS::CloudFront::Distribution'
+  # CloudFrontDistribution:
+  #   Type: 'AWS::CloudFront::Distribution'
+  #   Properties:
+  #     DistributionConfig:
+  #       Origins:
+  #         - DomainName: !Sub '${StackName}.s3.amazonaws.com'
+  #           Id: S3Origin
+  #           S3OriginConfig: {}
+  #       Enabled: true
+  #       DefaultCacheBehavior:
+  #         TargetOriginId: S3Origin
+  #         ViewerProtocolPolicy: 'redirect-to-https'
+  #         AllowedMethods: ['GET', 'HEAD']
+  #       WebACLId: !Ref WebACL
+
+  Route53RecordSet:
+    Type: 'AWS::Route53::RecordSet'
     Properties:
-      DistributionConfig:
-        Origins:
-          - DomainName: your-s3-bucket-name.s3.amazonaws.com
-            Id: S3Origin
-            S3OriginConfig: {}
-        Enabled: true
-        DefaultCacheBehavior:
-          TargetOriginId: S3Origin
-          ViewerProtocolPolicy: 'redirect-to-https'
-          AllowedMethods: ['GET', 'HEAD']
-        WebACLId: !Ref WebACL
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Sub '${StackName}.com'
+      Type: A
+      # AliasTarget:
+      #   HostedZoneId: !Ref HostedZoneId
+      #   DNSName: !GetAtt CloudFrontDistribution.DomainName
+      TTL: '300'
+      ResourceRecords:
+        - '0.0.0.0'
 
   EKSCluster:
     Type: 'AWS::EKS::Cluster'
     Properties:
-      Name: your-eks-cluster-name
+      Name: !Sub '${StackName}-ekscluster'
+      RoleArn: !Ref RoleArn
       ResourcesVpcConfig:
-        SubnetIds:
-          - subnet-12345678
-          - subnet-87654321
-        SecurityGroupIds:
-          - sg-12345678
+        SubnetIds: !Split [ ',', !Ref SubnetIds ]
+        SecurityGroupIds: !Split [ ',', !Ref SecurityGroupIds ]
+
+Outputs:
+  # CloudFrontDistributionDomainName:
+  #   Description: "The domain name of the CloudFront distribution"
+  #   Value: !GetAtt CloudFrontDistribution.DomainName
+  EKSClusterName:
+    Description: "The name of the EKS cluster"
+    Value: !Ref EKSCluster
